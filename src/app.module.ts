@@ -11,6 +11,7 @@ import { HealthCheckModule } from './healthCheck/healthCheck.module'
 import { MultiModule } from './multiMode/multi.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -38,7 +39,8 @@ import { join } from 'path';
     RankModule,
     RecordModule,
     HealthCheckModule,
-    MultiModule
+    MultiModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,9 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config'
 import { config } from 'aws-sdk';
-import { RedisIoAdapter } from './adapter/redis.adapter';
 import { NestExpressApplication } from '@nestjs/platform-express'
-import * as helmet from 'helmet';
 
 async function bootstrap() {
 
@@ -15,9 +13,6 @@ async function bootstrap() {
     origin: configService.get('CORS_URL'),
     methods: ["GET", "POST", "OPTION"],
   });
-  
-  //app.use(helmet())
-  //app.useWebSocketAdapter(new RedisIoAdapter(app));
   
   config.update({
     accessKeyId: configService.get('AWS_ACCESS_KEY_ID'),
