@@ -1,5 +1,5 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { ChannelModeratedByAppInstanceUserSummary } from 'aws-sdk/clients/chime';
+import { ConfigService } from '@nestjs/config';
 
 import { v4 as uuid } from 'uuid';
 
@@ -11,7 +11,9 @@ const users = {};
 @Injectable()
 export class MultiService {
 
-  constructor() {}
+  constructor(
+    private readonly configService: ConfigService
+  ) {}
 
   async create(hostId: string, roomData: RoomData) {
       const { roomCode, maxNum, nickName } = roomData
@@ -23,7 +25,7 @@ export class MultiService {
       const newUser = { //신규 멤버 생성
         nickName: nickName,
         socketId: hostId,
-        photoUrl: 'https://elb.intotheforest.space/card5.png',
+        photoUrl: this.configService.get('PROFILE_PHOTO_URL'),
         roomCode: roomCode,
         isHost: hostId,
         gameResult: {}
@@ -55,7 +57,7 @@ export class MultiService {
     const newUser = { 
       nickName: nickName,
       socketId: hostId,
-      photoUrl: 'https://elb.intotheforest.space/card5.png',
+      photoUrl: this.configService.get('PROFILE_PHOTO_URL'),
       roomCode: roomCode,
       gameResult: {}
     }
