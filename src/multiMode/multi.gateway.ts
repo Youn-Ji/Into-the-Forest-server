@@ -2,18 +2,14 @@ import {
   WebSocketGateway,
   SubscribeMessage,
   WebSocketServer,
-  OnGatewayInit,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  MessageBody,
-  ConnectedSocket,
  } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io'
 import { MultiService } from './multi.service';
-import { v4 as uuid } from 'uuid';
 
-import { RoomData, UserData, ChatData } from './multi.interface'
+import { RoomData, UserData } from './multi.interface'
 
 @WebSocketGateway()
 export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -83,20 +79,6 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('leave room') //나가기 버튼 눌렀을 때
-  async leaveRoom(client: Socket, userData: UserData) {
-    const { roomId, error } = await this.multiService.leave(client.id)
-
-    if(error) {
-      return { error: error }
-    }
-
-    if(roomId) {
-      client.leave(roomId)
-      this.server.to(roomId).emit('user leaved', { clientId : client.id }) //멤버 퇴장 알림
-    }
-  }
-
   @SubscribeMessage('sending signal')
   async sendSignal(client: Socket, data) {
     //roomCode 필요
@@ -139,40 +121,29 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-
-
-  // socket.on(EVENT.SENDING_SIGNAL, ({ signal, receiver }) => {
-  //   const initiator = members[socket.id];
-  //   const { socketId } = receiver;  // 이 부분 룸 id 맞는지 확인 필요
-  //   io.to(socketId).emit(EVENT.SENDING_SIGNAL, { initiator, signal });
-  // });
-
-  // socket.on(EVENT.RETURNING_SIGNAL, ({ signal, receiver }) => {
-  //   const returner = members[socket.id];
-  //   const { socketId } = receiver;
-  //   io.to(socketId).emit(EVENT.RETURNING_SIGNAL, { returner, signal });
-  // });
-
-
-    async afterInit(server: Server) {
-      this.logger.log('Init');
-    }
+  async afterInit(server: Server) {
+    this.logger.log('Init');
+  }
   
-    async handleDisconnect(client: Socket) { //브라우저 창에서 x 눌렀을 때
-      this.logger.log(`Client disconnected: ${client.id}`);
-      const { roomId, error } = await this.multiService.leave(client.id);
+  async handleDisconnect(client: Socket) { //브라우저 창에서 x 눌렀을 때
+    this.logger.log(`Client disconnected: ${client.id}`);
+    const { roomId, error, single } = await this.multiService.leave(client.id);
 
-      if(error) {
-        return { error: error }
-      }
-
-      if(roomId) {
-        client.leave(roomId)
-        this.server.to(roomId).emit('user leaved', { socketId : client.id }) //멤버 퇴장 알림
-      }
+    if(error) {
+      return { error: error }
     }
+
+    if(roomId) {
+      client.leave(roomId)
+      this.server.to(roomId).emit('user leaved', { socketId : client.id }) //멤버 퇴장 알림
+    }
+    
+    if(single) {
+      return { single: single }
+    }
+  }
   
-    async handleConnection(client: Socket) {
-      this.logger.log(`Client connected: ${client.id}`)
-    }
+  async handleConnection(client: Socket) {
+    this.logger.log(`Client connected: ${client.id}`)
+  }
 }
