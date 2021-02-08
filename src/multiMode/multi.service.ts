@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { v4 as uuid } from 'uuid';
@@ -98,6 +98,9 @@ export class MultiService {
   }
 
   async leave(hostId: string) { //브라우저 창에서 x 눌렀을 때 
+    if(!users[hostId]) {
+      return { single : `${hostId} 님이 떠나셨습니다..`}
+    }
     const { roomCode } = users[hostId];
     const { userList, roomId } = rooms[roomCode];
     if(roomCode in rooms) {
