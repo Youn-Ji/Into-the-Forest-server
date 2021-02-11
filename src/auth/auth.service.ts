@@ -26,11 +26,11 @@ export class AuthService {
     }
   }
 
-  async verifyGuard(accessToken) {
-    if(accessToken === this.configService.get('SECRET_PAYLOAD')) {
-      return { response: 'ok'}
+  async verifyGuard(data) {
+    if(data.key === this.configService.get('SECRET_PAYLOAD')) {
+      return 'ok'
     } else {
-      return { error: 'error'}
+      return null
     }
   }
 }
