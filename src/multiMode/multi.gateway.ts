@@ -5,10 +5,10 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
  } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { Logger, UnauthorizedException } from '@nestjs/common';
 import { Socket, Server } from 'socket.io'
 import { MultiService } from './multi.service';
-
+import { AuthService } from '../auth/auth.service';
 import { RoomData, UserData } from './multi.interface'
 
 @WebSocketGateway()
@@ -17,10 +17,27 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @WebSocketServer() public server: Server;
 
-  constructor (private multiService: MultiService){}
+  constructor (
+    private multiService: MultiService,
+    private authService: AuthService){}
+
+  @SubscribeMessage('access token') 
+    async verify(client: Socket, accessToken) {
+      const { response, error } = await this.authService.verify(client.id, accessToken)
+      if(response) {
+        const { accessToken } = await this.authService.sign();
+        if(accessToken) {
+          this.server.to(client.id).emit('access token',  accessToken)
+          this.logger.log(`${client.id}님이 access token을 받아갔습니다`)
+        }
+      }
+      if(error) {
+        throw new UnauthorizedException();
+      }
+    }
 
   @SubscribeMessage('create room')
-  async createRoom(client: Socket, roomData: RoomData): Promise<object> {
+  async createRoom(client: Socket, roomData: RoomData     ): Promise<object> {
     const { roomId, error } = await this.multiService.create(client.id, roomData)
 
     if(error) {
@@ -35,7 +52,6 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('join room')
   async joinRoom(client: Socket, userData: UserData): Promise<object> {
-    console.log('4', userData)
     const { roomId, error } = await this.multiService.join(client.id, userData)
 
     if(error) {

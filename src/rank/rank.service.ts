@@ -16,7 +16,6 @@ export class RankService {
   
   async load() { 
     const ranking = await this.rank.findAll({
-      limit: 10,
       order: [['score', 'DESC']],
       attributes: { exclude: ['id', 'updatedAt']}
     })
