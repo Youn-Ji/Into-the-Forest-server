@@ -29,7 +29,7 @@ export class RankService {
     }
   }
 
-  async create(rank: RankInt) {
+  async create(rank) {
     if(rank.score >= 60000) {
       throw new HttpException(
         'Wrong access',

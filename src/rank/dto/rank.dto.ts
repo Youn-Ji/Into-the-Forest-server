@@ -1,6 +1,9 @@
 export class RankDto {
-  nickname: string;
-  score: number;
-  stage: number;
-  subcha: number;
+  data : {
+    nickname: string;
+    score: number;
+    stage: number;
+    subcha: number;
+  };
+  babo : string
 }
