@@ -22,9 +22,7 @@ export class RankController {
   @UseGuards(AuthGuard('jwt'))
   @Post('reg')
   async create(@Body() regData: any) {
-    console.log('이거맞냐?',regData)
     const rankAccess: any = await jwt.verify(regData.rankToken, this.configService.get('SECRET_JWT_CONTENT'))
-    console.log('제발', rankAccess)
     
     const { data, babo } = rankAccess
     if(rankAccess) {

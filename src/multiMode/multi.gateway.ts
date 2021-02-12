@@ -5,11 +5,14 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
  } from '@nestjs/websockets';
-import { Logger, UnauthorizedException } from '@nestjs/common';
+import { Logger, UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Socket, Server } from 'socket.io'
 import { MultiService } from './multi.service';
 import { AuthService } from '../auth/auth.service';
 import { RoomData, UserData } from './multi.interface'
+import { RankService } from '../rank/rank.service'
+import * as jwt from 'jsonwebtoken';
 
 @WebSocketGateway()
 export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -19,16 +22,64 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor (
     private multiService: MultiService,
-    private authService: AuthService){}
+    private authService: AuthService,
+    private rankService: RankService,
+    private configService: ConfigService){}
 
   @SubscribeMessage('access token') 
-    async verify(client: Socket, accessToken) {
-      const { response, error } = await this.authService.verify(client.id, accessToken)
+    async verifyClient(client: Socket, accessToken) {
+      
+      const { response, error } = await this.authService.verifyClient(client.id, accessToken)
       if(response) {
-        const { accessToken } = await this.authService.sign();
+        const { serverToken } = await this.authService.sign(client.id);
         if(accessToken) {
-          this.server.to(client.id).emit('access token',  accessToken)
-          this.logger.log(`${client.id}님이 access token을 받아갔습니다`)
+          this.server.to(client.id).emit('access token',  serverToken)
+          this.logger.log(`${client.id}님이 server token을 받아갔습니다`)
+        }
+      }
+      if(error) {
+        throw new UnauthorizedException();
+      }
+    }
+
+  @SubscribeMessage('load rank')
+    async loadRank(client: Socket, data) {
+      const { response, error } = await this.authService.verifyServer(client.id, data.token)
+      if(response) {
+        const ranking = await this.rankService.load()
+        if(ranking) {
+          this.server.to(client.id).emit('load rank', ranking )
+        }
+      } 
+      if(error) {
+        throw new UnauthorizedException();
+      }
+    }
+
+    @SubscribeMessage('update rank')
+    async updateRank(client: Socket, rankData) {
+      const { token, data } = rankData
+      const { response, error } = await this.authService.verifyServer(client.id, token)
+      if(response) {
+        const rankAccess: any = await jwt.verify(data, this.configService.get('SECRET_JWT_CONTENT'))
+        if(rankAccess) {
+          const { data, babo } = rankAccess;
+            if(data.nickname !== ''
+              && data.score >= 0
+              && data.stage >= 0
+              && data.subcha >= 0
+              && babo === this.configService.get('DEEP_SECRET')) {
+                await this.rankService.create(data);
+                const newRanking = await this.rankService.load()
+                if(newRanking) {
+                  this.server.to(client.id).emit('update rank', newRanking)
+                  this.logger.log(`${client.id}님이 닉네임${data.nickname}으로 ${data.score}점을 등록하셨습니다`)
+                }
+            } else {
+              throw new HttpException(
+                'Insufficient parameters',
+                 HttpStatus.BAD_REQUEST);
+            }
         }
       }
       if(error) {
@@ -37,7 +88,7 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
   @SubscribeMessage('create room')
-  async createRoom(client: Socket, roomData: RoomData     ): Promise<object> {
+  async createRoom(client: Socket, roomData: RoomData): Promise<object> {
     const { roomId, error } = await this.multiService.create(client.id, roomData)
 
     if(error) {
