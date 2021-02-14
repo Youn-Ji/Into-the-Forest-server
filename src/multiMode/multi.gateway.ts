@@ -34,7 +34,7 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const { serverToken } = await this.authService.sign(client.id);
         if(accessToken) {
           this.server.to(client.id).emit('access token',  serverToken)
-          this.logger.log(`${client.id}님이 server token을 받아갔습니다`)
+          this.logger.log(`${client.id}님이 게임을 시작했습니다`)
         }
       }
       if(error) {
@@ -73,7 +73,7 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 const newRanking = await this.rankService.load()
                 if(newRanking) {
                   this.server.to(client.id).emit('update rank', newRanking)
-                  this.logger.log(`${client.id}님이 닉네임${data.nickname}으로 ${data.score}점을 등록하셨습니다`)
+                  this.logger.log(`${client.id}님이 닉네임${data.nickname}으로 ${data.score}점을 등록했습니다`)
                 }
             } else {
               throw new HttpException(
