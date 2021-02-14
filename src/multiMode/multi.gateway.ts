@@ -2,10 +2,9 @@ import {
   WebSocketGateway,
   SubscribeMessage,
   WebSocketServer,
-  OnGatewayConnection,
   OnGatewayDisconnect,
  } from '@nestjs/websockets';
-import { Logger, UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
+import { Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Socket, Server } from 'socket.io'
 import { MultiService } from './multi.service';
@@ -15,7 +14,7 @@ import { RankService } from '../rank/rank.service'
 import * as jwt from 'jsonwebtoken';
 
 @WebSocketGateway()
-export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class MultiGateway implements OnGatewayDisconnect {
   private logger: Logger = new Logger('MultiGateway');
 
   @WebSocketServer() public server: Server;
@@ -28,23 +27,26 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('access token') 
     async verifyClient(client: Socket, accessToken) {
-      
-      const { response, error } = await this.authService.verifyClient(client.id, accessToken)
+      const { response, error } = this.authService.verifyClient(client.id, accessToken)
       if(response) {
         const { serverToken } = await this.authService.sign(client.id);
         if(accessToken) {
           this.server.to(client.id).emit('access token',  serverToken)
+          this.logger.log(`[ 싱글모드]`)
           this.logger.log(`${client.id}님이 게임을 시작했습니다`)
+          this.logger.log(`-------------------------------------------------`)
         }
       }
       if(error) {
-        throw new UnauthorizedException();
+        this.logger.log(`[ 인증실패]`)
+        this.logger.log(`허가되지 않은 토큰입니다`)
+        this.logger.log(`-------------------------------------------------`)
       }
     }
 
   @SubscribeMessage('load rank')
     async loadRank(client: Socket, data) {
-      const { response, error } = await this.authService.verifyServer(client.id, data.token)
+      const { response, error } = this.authService.verifyServer(client.id, data.token)
       if(response) {
         const ranking = await this.rankService.load()
         if(ranking) {
@@ -52,16 +54,18 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
       } 
       if(error) {
-        throw new UnauthorizedException();
+        this.logger.log(`[ 인증실패]`)
+        this.logger.log(`허가되지 않은 토큰입니다`)
+        this.logger.log(`-------------------------------------------------`)
       }
     }
 
     @SubscribeMessage('update rank')
     async updateRank(client: Socket, rankData) {
       const { token, data } = rankData
-      const { response, error } = await this.authService.verifyServer(client.id, token)
+      const { response, error } = this.authService.verifyServer(client.id, token)
       if(response) {
-        const rankAccess: any = await jwt.verify(data, this.configService.get('SECRET_JWT_CONTENT'))
+        const rankAccess: any = jwt.verify(data, this.configService.get('SECRET_JWT_CONTENT'))
         if(rankAccess) {
           const { data, babo } = rankAccess;
             if(data.nickname !== ''
@@ -73,17 +77,21 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 const newRanking = await this.rankService.load()
                 if(newRanking) {
                   this.server.to(client.id).emit('update rank', newRanking)
+                  this.logger.log(`[ 싱글모드]`)
                   this.logger.log(`${client.id}님이 닉네임${data.nickname}으로 ${data.score}점을 등록했습니다`)
+                  this.logger.log(`-------------------------------------------------`)
                 }
             } else {
-              throw new HttpException(
-                'Insufficient parameters',
-                 HttpStatus.BAD_REQUEST);
+              this.logger.log(`[ 에러]`)
+              this.logger.log(`인자가 충분하지 않습니다`)
+              this.logger.log(`-------------------------------------------------`)
             }
         }
       }
       if(error) {
-        throw new UnauthorizedException();
+        this.logger.log(`[ 인증실패]`)
+        this.logger.log(`허가되지 않은 토큰입니다`)
+        this.logger.log(`-------------------------------------------------`)
       }
     }
 
@@ -108,7 +116,7 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if(error) {
       return { error: error }
     }
-    console.log(roomId)
+    
     if(roomId) {
       client.join(roomId)
       return { clientId: client.id, roomId: roomId }
@@ -118,7 +126,6 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('user joined')
   async alertUser(client: Socket, userData) {
     const { roomId, error, data } = await this.multiService.alert(client.id, userData);
-    console.log('user joined', roomId)
     if(error) {
       return { error: error }
     }
@@ -129,8 +136,8 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
   
   @SubscribeMessage('set profile')
-  async setProfile(client: Socket, userData) {
-    const { roomId, user } = await this.multiService.setProfile(client.id, userData)
+  setProfile(client: Socket, userData) {
+    const { roomId, user } = this.multiService.setProfile(client.id, userData)
 
     if(user) {
       this.server.to(roomId).emit('set profile', user ) 
@@ -148,14 +155,12 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('sending signal')
   async sendSignal(client: Socket, data) {
-    //roomCode 필요
     const { socketId, initiator, signal } = await this.multiService.send(client.id, data)
     this.server.to(socketId).emit('sending signal', { initiator, signal })
   }
 
   @SubscribeMessage('returning signal')
   async returnSignal(client: Socket, data) {
-    //roomCode 필요
     const { socketId, returner, signal } = await this.multiService.return(client.id, data)
     this.server.to(socketId).emit('returning signal', { returner, signal })
   }
@@ -193,7 +198,6 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
   
   async handleDisconnect(client: Socket) { //브라우저 창에서 x 눌렀을 때
-    this.logger.log(`Client disconnected: ${client.id}`);
     const { roomId, error, single } = await this.multiService.leave(client.id);
 
     if(error) {
@@ -209,8 +213,5 @@ export class MultiGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return { single: single }
     }
   }
-  
-  async handleConnection(client: Socket) {
-    this.logger.log(`Client connected: ${client.id}`)
-  }
+
 }
