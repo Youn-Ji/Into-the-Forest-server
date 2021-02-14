@@ -18,20 +18,25 @@ export class AuthService {
     }
   }
 
-  async verifyClient(hostId, token) {
-    const accessToken = jwt.verify(token, this.configService.get('SECRET_JWT_TEMP'))
-    if(accessToken === hostId) {
-      return { response: 'ok'}
-    } else {
+  verifyClient(hostId, token) {
+    try {
+      const accessToken: any = jwt.verify(token, this.configService.get('SECRET_JWT_TEMP'))
+      if(accessToken === hostId) {
+        return { response: 'ok'}
+      }
+    } catch(err) {
       return { error: 'error'}
     }
   }
 
-  async verifyServer(hostId, token) {
+
+  verifyServer(hostId, token) {
+    try {
     const serverToken: any = jwt.verify(token, this.configService.get('SECRET_JWT'))
     if(serverToken.hostId === hostId) {
       return { response: 'ok' }
-    } else {
+      } 
+    } catch (err) {
       return { error: 'error' }
     }
   }
