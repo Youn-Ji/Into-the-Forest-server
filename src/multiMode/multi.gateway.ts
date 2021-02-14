@@ -32,15 +32,15 @@ export class MultiGateway implements OnGatewayDisconnect {
         const { serverToken } = await this.authService.sign(client.id);
         if(accessToken) {
           this.server.to(client.id).emit('access token',  serverToken)
-          this.logger.log(`[ 싱글모드]`)
+          this.logger.debug(`[ 싱글모드]`)
           this.logger.log(`${client.id}님이 게임을 시작했습니다`)
-          this.logger.log(`-------------------------------------------------`)
+          this.logger.debug(`-------------------------------------------------`)
         }
       }
       if(error) {
-        this.logger.log(`[ 인증실패]`)
+        this.logger.error(`[ 인증실패]`)
         this.logger.log(`허가되지 않은 토큰입니다`)
-        this.logger.log(`-------------------------------------------------`)
+        this.logger.error(`-------------------------------------------------`)
       }
     }
 
@@ -54,9 +54,9 @@ export class MultiGateway implements OnGatewayDisconnect {
         }
       } 
       if(error) {
-        this.logger.log(`[ 인증실패]`)
+        this.logger.error(`[ 인증실패]`)
         this.logger.log(`허가되지 않은 토큰입니다`)
-        this.logger.log(`-------------------------------------------------`)
+        this.logger.error(`-------------------------------------------------`)
       }
     }
 
@@ -77,21 +77,21 @@ export class MultiGateway implements OnGatewayDisconnect {
                 const newRanking = await this.rankService.load()
                 if(newRanking) {
                   this.server.to(client.id).emit('update rank', newRanking)
-                  this.logger.log(`[ 싱글모드]`)
+                  this.logger.debug(`[ 싱글모드]`)
                   this.logger.log(`${client.id}님이 닉네임${data.nickname}으로 ${data.score}점을 등록했습니다`)
-                  this.logger.log(`-------------------------------------------------`)
+                  this.logger.debug(`-------------------------------------------------`)
                 }
             } else {
-              this.logger.log(`[ 에러]`)
+              this.logger.error(`[ 에러]`)
               this.logger.log(`인자가 충분하지 않습니다`)
-              this.logger.log(`-------------------------------------------------`)
+              this.logger.error(`-------------------------------------------------`)
             }
         }
       }
       if(error) {
-        this.logger.log(`[ 인증실패]`)
+        this.logger.error(`[ 인증실패]`)
         this.logger.log(`허가되지 않은 토큰입니다`)
-        this.logger.log(`-------------------------------------------------`)
+        this.logger.error(`-------------------------------------------------`)
       }
     }
 

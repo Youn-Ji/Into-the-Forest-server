@@ -42,9 +42,9 @@ export class MultiService {
       
       users[hostId] = newUser //유저 목록에 추가
       rooms[roomCode] = newRoom //방 목록에 추가
-      this.logger.log(`[ 신규방 생성]`)
+      this.logger.debug(`[ 신규방 생성]`)
       this.logger.log(`방이름:${roomCode} | 최대인원수:${maxNum} | 생성자:${nickName}`)
-      this.logger.log(`-------------------------------------------------`)
+      this.logger.debug(`-------------------------------------------------`)
       return { roomId: roomId }
   }
  
@@ -67,9 +67,9 @@ export class MultiService {
     
     users[hostId] = newUser; //유저 목록에 추가
     userList.push(newUser); //기존 방에 신규멤버 추가
-    this.logger.log(`[ 신규멤버]`)
+    this.logger.debug(`[ 신규멤버]`)
     this.logger.log(`방이름:${roomCode} | 닉네임:${nickName}`)
-    this.logger.log(`-------------------------------------------------`)
+    this.logger.debug(`-------------------------------------------------`)
   
     return { roomId: roomId } 
   }
@@ -94,16 +94,16 @@ export class MultiService {
    
     if(userData.nickName) user.nickName = userData.nickName;
     if(userData.photoUrl) user.photoUrl = userData.photoUrl;
-    this.logger.log(`[ 프로필 수정]`)
+    this.logger.debug(`[ 프로필 수정]`)
     this.logger.log(`닉네임:${user.nickName} | 사진:${user.photoUrl}`)
-    this.logger.log(`-------------------------------------------------`)
+    this.logger.debug(`-------------------------------------------------`)
 
     return { roomId: roomId, user: user }
   }
 
   async leave(hostId: string) { //브라우저 창에서 x 눌렀을 때 
     if(!users[hostId]) {
-      return { single : `${hostId} 님이 떠나셨습니다..`}
+      return { single : `${hostId} 님이 떠나셨습니다.. `}
     }
     const { roomCode, nickName } = users[hostId];
     const { userList, roomId } = rooms[roomCode];
@@ -130,8 +130,8 @@ export class MultiService {
   async chat(chatData) {
     const { roomCode, chat } = chatData;
     const { roomId } = rooms[roomCode];
-    this.logger.log(`[ 채팅/${roomCode}] ${chat.nickName}:${chat.content}`)
-    this.logger.log(`-------------------------------------------------`)
+    this.logger.verbose(`[ 채팅/${roomCode}] ${chat.nickName}:${chat.content}`)
+    this.logger.verbose(`-------------------------------------------------`)
     return { roomId : roomId }
   }
 
@@ -186,8 +186,8 @@ export class MultiService {
     gameOver.push(hostId)
     
     if(gameOver.length === 4) {
-      this.logger.log(`[ 멀티방 게임 종료] ${roomCode}`)
-      this.logger.log(`-------------------------------------------------`)
+      this.logger.debug(`[ 멀티방 게임 종료] ${roomCode}`)
+      this.logger.debug(`-------------------------------------------------`)
       return {response: {roomId: roomId, userList: userList}}
     }
 
