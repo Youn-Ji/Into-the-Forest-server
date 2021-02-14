@@ -23,9 +23,10 @@ export class RankController {
   @Post('reg')
   async create(@Body() regData: any) {
     const rankAccess: any = await jwt.verify(regData.rankToken, this.configService.get('SECRET_JWT_CONTENT'))
-    
-    const { data, babo } = rankAccess
+
     if(rankAccess) {
+      const { data, babo } = rankAccess
+      
       if(data.nickname !== ''
         && data.score >= 0
         && data.stage >= 0
