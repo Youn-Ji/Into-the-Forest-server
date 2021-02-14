@@ -30,7 +30,7 @@ export class RankService {
   }
 
   async create(rank) {
-    if(rank.score >= 60000) {
+    if(rank.score >= 100000) {
       throw new HttpException(
         'Wrong access',
         HttpStatus.FORBIDDEN);
