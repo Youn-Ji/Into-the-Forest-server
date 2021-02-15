@@ -3,11 +3,7 @@ import { SequelizeModule } from '@nestjs/sequelize'
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { RankModule } from './rank/rank.module';
 import { Rank } from './rank/rank.model'
-import { RecordModule } from './record/record.module'
-import { Record } from './record/record.model'
-import { HealthCheckModule } from './healthCheck/healthCheck.module'
 import { MultiModule } from './multiMode/multi.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -29,7 +25,7 @@ import { AuthModule } from './auth/auth.module';
         username: configService.get('DATABASE_USERNAME'),
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
-        models: [Rank, Record],
+        models: [Rank],
       }),
       inject: [ConfigService]
     }),
