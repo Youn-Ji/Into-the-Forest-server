@@ -43,7 +43,7 @@ export class MultiService {
       users[hostId] = newUser //유저 목록에 추가
       rooms[roomCode] = newRoom //방 목록에 추가
       this.logger.debug(`[ 신규방 생성]`)
-      this.logger.log(`방이름:${roomCode} | 최대인원수:${maxNum} | 생성자:${nickName}`)
+      this.logger.debug(`방이름:${roomCode} | 최대인원수:${maxNum} | 생성자:${nickName}`)
       this.logger.debug(`-------------------------------------------------`)
       return { roomId: roomId }
   }
@@ -68,7 +68,7 @@ export class MultiService {
     users[hostId] = newUser; //유저 목록에 추가
     userList.push(newUser); //기존 방에 신규멤버 추가
     this.logger.debug(`[ 신규멤버]`)
-    this.logger.log(`방이름:${roomCode} | 닉네임:${nickName}`)
+    this.logger.debug(`방이름:${roomCode} | 닉네임:${nickName}`)
     this.logger.debug(`-------------------------------------------------`)
   
     return { roomId: roomId } 
@@ -95,7 +95,7 @@ export class MultiService {
     if(userData.nickName) user.nickName = userData.nickName;
     if(userData.photoUrl) user.photoUrl = userData.photoUrl;
     this.logger.debug(`[ 프로필 수정]`)
-    this.logger.log(`닉네임:${user.nickName} | 사진:${user.photoUrl}`)
+    this.logger.debug(`닉네임:${user.nickName} | 사진:${user.photoUrl}`)
     this.logger.debug(`-------------------------------------------------`)
 
     return { roomId: roomId, user: user }
@@ -112,12 +112,12 @@ export class MultiService {
 
       userList.splice(index, 1); //룸 멤버 목록에서 삭제
       delete users[hostId] //전체 유저 목록에서 삭제
-      this.logger.log(`${nickName}님이 [ ${roomCode}]방을 떠났습니다`)
+      this.logger.log(`${nickName}님이 ${roomCode}방을 떠났습니다`)
       this.logger.log(`-------------------------------------------------`)
 
       if(userList.length === 0) {
         delete rooms[roomCode]
-        this.logger.log(`[ ${roomCode}]방의 멤버가 모두 나갔습니다`)
+        this.logger.log(`${roomCode}방의 멤버가 모두 나갔습니다`)
         this.logger.log(`-------------------------------------------------`)
       }
       
@@ -130,7 +130,7 @@ export class MultiService {
   async chat(chatData) {
     const { roomCode, chat } = chatData;
     const { roomId } = rooms[roomCode];
-    this.logger.verbose(`[ 채팅/${roomCode}] ${chat.nickName}:${chat.content}`)
+    this.logger.verbose(`[ 채팅/${roomCode} ] ${chat.nickName}:${chat.content}`)
     this.logger.verbose(`-------------------------------------------------`)
     return { roomId : roomId }
   }
