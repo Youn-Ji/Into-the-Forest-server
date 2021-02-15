@@ -1,16 +1,16 @@
-import { Column, Model, Table } from 'sequelize-typescript';
+// import { Column, Model, Table } from 'sequelize-typescript';
 
-@Table
-export class Record extends Model {
-    @Column
-    roomcode: string;
+// @Table
+// export class Record extends Model {
+//     @Column
+//     roomcode: string;
 
-    @Column 
-    url: string;
+//     @Column 
+//     url: string;
 
-    @Column 
-    key: string;
+//     @Column 
+//     key: string;
 
-    @Column 
-    password: string;
-}
+//     @Column 
+//     password: string;
+// }
