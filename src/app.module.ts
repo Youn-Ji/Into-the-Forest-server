@@ -25,6 +25,7 @@ import { AuthModule } from './auth/auth.module';
         username: configService.get('DATABASE_USERNAME'),
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
+        logging:false,
         models: [Rank],
       }),
       inject: [ConfigService]
