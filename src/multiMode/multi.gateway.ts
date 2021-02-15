@@ -86,6 +86,7 @@ export class MultiGateway implements OnGatewayDisconnect {
             } else {
               this.logger.error(`[ 에러]`)
               this.logger.error(`인자가 충분하지 않습니다`)
+              this.logger.error(`${data.nickname}|${data.score}|${data.stage}|${data.subcha}`)
               this.logger.error(`-------------------------------------------------`)
             }
         }
