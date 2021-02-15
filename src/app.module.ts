@@ -30,6 +30,7 @@ import { AuthModule } from './auth/auth.module';
         password: configService.get('DATABASE_PASSWORD'),
         database: configService.get('DATABASE_NAME'),
         models: [Rank, Record],
+        logging: false
       }),
       inject: [ConfigService]
     }),
