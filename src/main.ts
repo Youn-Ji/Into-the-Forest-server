@@ -4,12 +4,14 @@ import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config'
 import { config } from 'aws-sdk';
 import { NestExpressApplication } from '@nestjs/platform-express'
+import * as helmet from 'helmet';
 
 async function bootstrap() {
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: true
   });
+  app.use(helmet());
   app.use(bodyParser.json({limit: '10mb'}))
   app.use(bodyParser.urlencoded({limit: '10mb', extended: true}));
   const configService = app.get(ConfigService);
